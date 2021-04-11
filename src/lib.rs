@@ -6,6 +6,7 @@ use std::path;
 pub enum RenameError {
     NotFound(io::Error),
     PermissionDenied(io::Error),
+    IsDirectory(io::Error),
     UnexpectedError(io::Error),
 }
 
@@ -14,6 +15,7 @@ impl fmt::Display for RenameError {
         match *self {
             RenameError::NotFound(ref e)         => write!(f, "Unable to rename(NotFound): {}", e),
             RenameError::PermissionDenied(ref e) => write!(f, "Unable to rename(PermissionDenied): {}", e),
+            RenameError::IsDirectory(ref e)      => write!(f, "Unable to rename(IsDirectory): {}", e),
             RenameError::UnexpectedError(ref e) => write!(f, "Unable to rename: {}", e),
         }
     }
@@ -30,7 +32,13 @@ where S: AsRef<path::Path>,
             match e.kind(){
                 io::ErrorKind::NotFound         => Err(RenameError::NotFound(e)),
                 io::ErrorKind::PermissionDenied => Err(RenameError::PermissionDenied(e)),
-                _                               => Err(RenameError::UnexpectedError(e)),
+                _  => {
+                    match e.raw_os_error(){
+                        None     => Err(RenameError::UnexpectedError(e)),
+                        Some(21) => Err(RenameError::IsDirectory(e)),
+                        Some(_)  => Err(RenameError::UnexpectedError(e)),
+                    }
+                },
             }
         },
     }
