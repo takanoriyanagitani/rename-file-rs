@@ -54,4 +54,17 @@ mod rename_test {
             _ => panic!("Unexpected error: {}", e),
         }
     }
+
+    #[test]
+    fn target_file_exists(){
+        let temp = path::Path::new(".test").join("rename_test").join("target_file_exists");
+        fs::create_dir_all(&temp).unwrap();
+        let src = temp.join("neo-exist");
+        let dst = temp.join("old-exist");
+        fs::File::create(&src).unwrap();
+        fs::File::create(&dst).unwrap();
+
+        let r = rename_file::rename(src, dst);
+        assert_eq!(true, r.is_ok());
+    }
 }
