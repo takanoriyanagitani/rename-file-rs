@@ -50,6 +50,7 @@ mod rename_test {
                     _                               => panic!("Unexpected error"),
                 }
             },
+            rename_file::RenameError::IsDirectory(ref e) => {},
             _ => panic!("Unexpected error: {}", e),
         }
     }
